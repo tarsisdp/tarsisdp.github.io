@@ -1,91 +1,419 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mijn IP-adres</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+        
+        .ip-container {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .ip-label {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #a8e6cf;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .ip-address {
+            font-size: 2.2rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin: 15px 0;
+            word-break: break-all;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .loading {
+            color: #ffd166;
+        }
+        
+        .error {
+            color: #ef476f;
+        }
+        
+        .details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .detail-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .detail-box i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #4cc9f0;
+        }
+        
+        .detail-title {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+        
+        .detail-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .refresh-btn {
+            background: #06d6a0;
+            color: #000;
+        }
+        
+        .copy-btn {
+            background: #118ab2;
+            color: white;
+        }
+        
+        .info-btn {
+            background: #ffd166;
+            color: #000;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .footer {
+            margin-top: 20px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+            max-width: 800px;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #06d6a0;
+            color: #000;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+            z-index: 100;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .ip-address {
+                font-size: 1.6rem;
+            }
+            
+            .container {
+                padding: 30px 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.7rem;
+            }
+            
+            .ip-address {
+                font-size: 1.3rem;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-
-    <fieldset>
-        <legend>Nog te werken dagen, uren en minuten.</legend>
-
-        <label for="datum">Kies een datum:</label><br />
-        <input type="date" id="datum"><br /><br />
-
-        <label for="tijd">Kies een tijdstip:</label><br />
-        <input type="time" id="tijd"><br /><br />
-
-        <button onclick="functie()">Bepaal hoeveel je deze week nog moet werken.</button>
-
-        <p id="output"></p>
-    </fieldset>
+    <div class="container">
+        <h1><i class="fas fa-network-wired"></i> Mijn IP-adres</h1>
+        <p class="subtitle">Dit is het IP-adres waarmee je verbonden bent met internet</p>
+        
+        <div class="ip-container">
+            <div class="ip-label">
+                <i class="fas fa-globe"></i> Je publieke IPv4-adres
+            </div>
+            <div id="ipv4" class="ip-address loading">
+                IP-adres laden...
+            </div>
+            
+            <div class="ip-label" style="margin-top: 30px;">
+                <i class="fas fa-satellite-dish"></i> Je publieke IPv6-adres
+            </div>
+            <div id="ipv6" class="ip-address">
+                Niet beschikbaar of niet gedetecteerd
+            </div>
+        </div>
+        
+        <div class="details">
+            <div class="detail-box">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="detail-title">Locatie (ongeveer)</div>
+                <div id="location" class="detail-value">Laden...</div>
+            </div>
+            
+            <div class="detail-box">
+                <i class="fas fa-server"></i>
+                <div class="detail-title">Internetprovider</div>
+                <div id="isp" class="detail-value">Laden...</div>
+            </div>
+            
+            <div class="detail-box">
+                <i class="fas fa-shield-alt"></i>
+                <div class="detail-title">Verbinding</div>
+                <div id="connection" class="detail-value">Veilig (HTTPS)</div>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button class="refresh-btn" id="refreshBtn">
+                <i class="fas fa-redo-alt"></i> Verversen
+            </button>
+            <button class="copy-btn" id="copyBtn">
+                <i class="far fa-copy"></i> Kopieer IPv4
+            </button>
+            <button class="info-btn" id="infoBtn">
+                <i class="fas fa-info-circle"></i> Over IP-adressen
+            </button>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Je IP-adres wordt gebruikt om verbinding te maken met websites en services op internet.</p>
+        <p>Deze website slaat geen persoonlijke gegevens op.</p>
+    </div>
+    
+    <div class="notification" id="notification">
+        IPv4-adres gekopieerd naar klembord!
+    </div>
 
     <script>
-        function functie() {
-            datumInvoer = document.getElementById('datum').value;
-            tijdInvoer = document.getElementById('tijd').value;
-            outputVeld = document.getElementById('output');
-
-             startMoment = new Date(datumInvoer +'T'+ tijdInvoer);
-             resultaatHtml = "<b><u>Nog te werken voor deze week:</u></b><br>";
-
-            
-            const DAG_START = 8 * 60;      
-            const PAUZE_START = 12 * 60;   
-            const PAUZE_EIND = 13 * 60;    
-            const DAG_EIND = 17 * 60;      
-            const TOTAAL_DAG_MINUTEN = 480; 
-
-             huidigeDag = new Date(startMoment);
-             dagNummer = huidigeDag.getDay();
-
-            
-            for ( i = dagNummer; i <= 5; i++) {
-                if (i === 0 || i === 6) continue;
-
-                 resterendeMinuten = 0;
-
+        // Elementen selecteren
+        const ipv4Element = document.getElementById('ipv4');
+        const ipv6Element = document.getElementById('ipv6');
+        const locationElement = document.getElementById('location');
+        const ispElement = document.getElementById('isp');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const infoBtn = document.getElementById('infoBtn');
+        const notification = document.getElementById('notification');
+        
+        // IP-adres ophalen via een betrouwbare service
+        async function fetchIPInfo() {
+            try {
+                // Toon laadstatus
+                ipv4Element.textContent = 'IP-adres laden...';
+                ipv4Element.className = 'ip-address loading';
+                locationElement.textContent = 'Laden...';
+                ispElement.textContent = 'Laden...';
                 
-                if (huidigeDag.toDateString() === startMoment.toDateString()) {
-                     nuInMinuten = startMoment.getHours() * 60 + startMoment.getMinutes();
-
-                    if (nuInMinuten < DAG_START) {
-                        resterendeMinuten = TOTAAL_DAG_MINUTEN;
-                    } else if (nuInMinuten >= DAG_EIND) {
-                        resterendeMinuten = 0;
-                    } else {
-                        
-                        if (nuInMinuten < PAUZE_START) {
-                            
-                            resterendeMinuten = (PAUZE_START - nuInMinuten) + (DAG_EIND - PAUZE_EIND);
-                        } else if (nuInMinuten < PAUZE_EIND) {
-                            
-                            resterendeMinuten = (DAG_EIND - PAUZE_EIND);
-                        } else {
-                           
-                            resterendeMinuten = (DAG_EIND - nuInMinuten);
-                        }
+                // Gebruik ipify voor IPv4 (betrouwbare service)
+                const ipv4Response = await fetch('https://api.ipify.org?format=json');
+                const ipv4Data = await ipv4Response.json();
+                ipv4Element.textContent = ipv4Data.ip;
+                ipv4Element.className = 'ip-address';
+                
+                // Probeer IPv6 op te halen
+                try {
+                    const ipv6Response = await fetch('https://api64.ipify.org?format=json');
+                    const ipv6Data = await ipv6Response.json();
+                    // Controleer of het een IPv6-adres is
+                    if (ipv6Data.ip.includes(':')) {
+                        ipv6Element.textContent = ipv6Data.ip;
                     }
-                } else {
-                    
-                    resterendeMinuten = TOTAAL_DAG_MINUTEN;
+                } catch (error) {
+                    console.log('IPv6 niet beschikbaar');
                 }
-
-                 uren = Math.floor(resterendeMinuten / 60);
-                 minuten = resterendeMinuten % 60;
-
-               
-                 
-                 datumTekst = huidigeDag.toDateString();
-
-                resultaatHtml += datumTekst + ": " + uren + "u " + minuten + "m<br>";
-
                 
-                huidigeDag.setDate(huidigeDag.getDate() + 1);
+                // Probeer locatie en ISP informatie op te halen
+                try {
+                    const geoResponse = await fetch(`https://ipapi.co/${ipv4Data.ip}/json/`);
+                    const geoData = await geoResponse.json();
+                    
+                    if (geoData.city && geoData.country_name) {
+                        locationElement.textContent = `${geoData.city}, ${geoData.country_name}`;
+                    } else {
+                        locationElement.textContent = 'Onbekend';
+                    }
+                    
+                    if (geoData.org) {
+                        ispElement.textContent = geoData.org.length > 30 ? geoData.org.substring(0, 30) + '...' : geoData.org;
+                    } else {
+                        ispElement.textContent = 'Onbekend';
+                    }
+                } catch (error) {
+                    console.log('Kon locatie-informatie niet ophalen');
+                    locationElement.textContent = 'Niet beschikbaar';
+                    ispElement.textContent = 'Niet beschikbaar';
+                }
+                
+            } catch (error) {
+                console.error('Fout bij het ophalen van IP-informatie:', error);
+                ipv4Element.textContent = 'Kon IP-adres niet ophalen. Probeer opnieuw.';
+                ipv4Element.className = 'ip-address error';
+                locationElement.textContent = 'Fout';
+                ispElement.textContent = 'Fout';
             }
-
-            outputVeld.innerHTML = resultaatHtml;
         }
+        
+        // IPv4-adres kopiëren naar klembord
+        function copyToClipboard() {
+            const ipText = ipv4Element.textContent;
+            
+            // Controleer of het een geldig IP-adres is
+            if (!ipText || ipText.includes('laden') || ipText.includes('Kon IP-adres niet')) {
+                showNotification('Geen geldig IP-adres om te kopiëren', true);
+                return;
+            }
+            
+            // Gebruik de Clipboard API
+            navigator.clipboard.writeText(ipText).then(() => {
+                showNotification('IPv4-adres gekopieerd naar klembord!');
+            }).catch(err => {
+                // Fallback voor oudere browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = ipText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification('IPv4-adres gekopieerd naar klembord!');
+            });
+        }
+        
+        // Toon een melding
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.style.background = isError ? '#ef476f' : '#06d6a0';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Toon informatie over IP-adressen
+        function showIPInfo() {
+            const info = `IP-adressen (Internet Protocol) zijn unieke identificatoren voor apparaten op internet.\n\n- IPv4: 32-bit adres (bijv. 192.168.1.1), 4.3 miljard mogelijkheden\n- IPv6: 128-bit adres (bijv. 2001:0db8::1), vrijwel onbeperkt aantal\n\nJe IP-adres kan worden gebruikt om je algemene locatie en internetprovider te bepalen, maar identificeert je niet persoonlijk.`;
+            alert(info);
+        }
+        
+        // Event listeners toevoegen
+        refreshBtn.addEventListener('click', fetchIPInfo);
+        copyBtn.addEventListener('click', copyToClipboard);
+        infoBtn.addEventListener('click', showIPInfo);
+        
+        // Laad IP-informatie bij het openen van de pagina
+        document.addEventListener('DOMContentLoaded', fetchIPInfo);
+        
+        // Toon een welkomstbericht na het laden
+        window.addEventListener('load', () => {
+            console.log('IP-website volledig geladen');
+        });
     </script>
 </body>
 </html>
