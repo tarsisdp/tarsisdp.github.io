@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mijn IP-adres</title>
+    <title>Mijn IP-adres - Met logging</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -31,7 +31,7 @@
             border-radius: 20px;
             padding: 40px 30px;
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.2);
             margin-bottom: 30px;
@@ -122,12 +122,51 @@
             font-weight: 600;
         }
         
+        .log-section {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
+        }
+        
+        .log-section h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: #a8e6cf;
+        }
+        
+        .log-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-top: 15px;
+        }
+        
+        .log-entry {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
         .buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
             justify-content: center;
-            margin-top: 30px;
+            margin-top: 20px;
         }
         
         button {
@@ -154,9 +193,14 @@
             color: white;
         }
         
-        .info-btn {
-            background: #ffd166;
+        .log-btn {
+            background: #ff9e00;
             color: #000;
+        }
+        
+        .download-btn {
+            background: #8338ec;
+            color: white;
         }
         
         button:hover {
@@ -172,7 +216,7 @@
             margin-top: 20px;
             opacity: 0.7;
             font-size: 0.9rem;
-            max-width: 800px;
+            max-width: 900px;
         }
         
         .notification {
@@ -269,22 +313,32 @@
             </div>
         </div>
         
+        <div class="log-section">
+            <h3><i class="fas fa-history"></i> IP Log Geschiedenis</h3>
+            <div class="log-container" id="logContainer">
+                Log geschiedenis wordt geladen...
+            </div>
+        </div>
+        
         <div class="buttons">
             <button class="refresh-btn" id="refreshBtn">
-                <i class="fas fa-redo-alt"></i> Verversen
+                <i class="fas fa-redo-alt"></i> Verversen & Loggen
             </button>
             <button class="copy-btn" id="copyBtn">
                 <i class="far fa-copy"></i> Kopieer IPv4
             </button>
-            <button class="info-btn" id="infoBtn">
-                <i class="fas fa-info-circle"></i> Over IP-adressen
+            <button class="log-btn" id="viewLogBtn">
+                <i class="fas fa-history"></i> Toon Logs
+            </button>
+            <button class="download-btn" id="downloadBtn">
+                <i class="fas fa-download"></i> Download Logs
             </button>
         </div>
     </div>
     
     <div class="footer">
-        <p>Je IP-adres wordt gebruikt om verbinding te maken met websites en services op internet.</p>
-        <p>Deze website slaat geen persoonlijke gegevens op.</p>
+        <p>Je IP-adres wordt gelogd in je browseropslag. Dit is alleen lokaal op je eigen apparaat.</p>
+        <p>Voor echte server-logging is een backend server nodig.</p>
     </div>
     
     <div class="notification" id="notification">
@@ -297,10 +351,123 @@
         const ipv6Element = document.getElementById('ipv6');
         const locationElement = document.getElementById('location');
         const ispElement = document.getElementById('isp');
+        const logContainer = document.getElementById('logContainer');
         const refreshBtn = document.getElementById('refreshBtn');
         const copyBtn = document.getElementById('copyBtn');
-        const infoBtn = document.getElementById('infoBtn');
+        const viewLogBtn = document.getElementById('viewLogBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
         const notification = document.getElementById('notification');
+        
+        // Logboek in localStorage (simulatie van tekstbestand)
+        const LOG_STORAGE_KEY = 'ip_log_history';
+        
+        // IP-logboek laden uit localStorage
+        function loadLogHistory() {
+            try {
+                const logData = localStorage.getItem(LOG_STORAGE_KEY);
+                return logData ? JSON.parse(logData) : [];
+            } catch (error) {
+                console.error('Fout bij laden loggeschiedenis:', error);
+                return [];
+            }
+        }
+        
+        // IP-logboek opslaan in localStorage
+        function saveLogEntry(ipData) {
+            try {
+                const logs = loadLogHistory();
+                
+                // Voeg tijdstempel toe
+                const logEntry = {
+                    timestamp: new Date().toISOString(),
+                    ipv4: ipData.ipv4,
+                    ipv6: ipData.ipv6 || 'N/A',
+                    location: ipData.location || 'Onbekend',
+                    isp: ipData.isp || 'Onbekend',
+                    userAgent: navigator.userAgent
+                };
+                
+                // Voeg toe aan begin van array (nieuwste eerst)
+                logs.unshift(logEntry);
+                
+                // Beperk tot laatste 50 entries
+                const limitedLogs = logs.slice(0, 50);
+                
+                // Sla op in localStorage
+                localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(limitedLogs));
+                
+                return logEntry;
+            } catch (error) {
+                console.error('Fout bij opslaan logentry:', error);
+                return null;
+            }
+        }
+        
+        // Toon loggeschiedenis
+        function displayLogHistory() {
+            const logs = loadLogHistory();
+            
+            if (logs.length === 0) {
+                logContainer.innerHTML = '<div class="log-entry">Geen loggeschiedenis gevonden.</div>';
+                return;
+            }
+            
+            let html = '';
+            logs.forEach((log, index) => {
+                const date = new Date(log.timestamp);
+                const formattedDate = date.toLocaleString('nl-NL');
+                
+                html += `
+                    <div class="log-entry">
+                        <strong>${formattedDate}</strong><br>
+                        IPv4: ${log.ipv4} | IPv6: ${log.ipv6}<br>
+                        Locatie: ${log.location} | ISP: ${log.isp}
+                    </div>
+                `;
+            });
+            
+            logContainer.innerHTML = html;
+        }
+        
+        // Logboek downloaden als tekstbestand
+        function downloadLogFile() {
+            const logs = loadLogHistory();
+            
+            if (logs.length === 0) {
+                showNotification('Geen loggeschiedenis om te downloaden', true);
+                return;
+            }
+            
+            let logText = "IP-Adres Logboek\n";
+            logText += "=================\n\n";
+            
+            logs.forEach((log, index) => {
+                const date = new Date(log.timestamp);
+                const formattedDate = date.toLocaleString('nl-NL');
+                
+                logText += `Entry ${index + 1}:\n`;
+                logText += `  Tijdstip: ${formattedDate}\n`;
+                logText += `  IPv4: ${log.ipv4}\n`;
+                logText += `  IPv6: ${log.ipv6}\n`;
+                logText += `  Locatie: ${log.location}\n`;
+                logText += `  ISP: ${log.isp}\n`;
+                logText += `  User Agent: ${log.userAgent}\n`;
+                logText += "-".repeat(40) + "\n\n";
+            });
+            
+            // Maak een downloadlink aan
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ip_log_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('Logboek gedownload als tekstbestand');
+        }
         
         // IP-adres ophalen via een betrouwbare service
         async function fetchIPInfo() {
@@ -314,34 +481,42 @@
                 // Gebruik ipify voor IPv4 (betrouwbare service)
                 const ipv4Response = await fetch('https://api.ipify.org?format=json');
                 const ipv4Data = await ipv4Response.json();
-                ipv4Element.textContent = ipv4Data.ip;
+                const ipv4 = ipv4Data.ip;
+                ipv4Element.textContent = ipv4;
                 ipv4Element.className = 'ip-address';
                 
+                let ipv6 = 'Niet beschikbaar of niet gedetecteerd';
                 // Probeer IPv6 op te halen
                 try {
                     const ipv6Response = await fetch('https://api64.ipify.org?format=json');
                     const ipv6Data = await ipv6Response.json();
                     // Controleer of het een IPv6-adres is
                     if (ipv6Data.ip.includes(':')) {
-                        ipv6Element.textContent = ipv6Data.ip;
+                        ipv6 = ipv6Data.ip;
+                        ipv6Element.textContent = ipv6;
                     }
                 } catch (error) {
                     console.log('IPv6 niet beschikbaar');
                 }
                 
+                let location = 'Onbekend';
+                let isp = 'Onbekend';
+                
                 // Probeer locatie en ISP informatie op te halen
                 try {
-                    const geoResponse = await fetch(`https://ipapi.co/${ipv4Data.ip}/json/`);
+                    const geoResponse = await fetch(`https://ipapi.co/${ipv4}/json/`);
                     const geoData = await geoResponse.json();
                     
                     if (geoData.city && geoData.country_name) {
-                        locationElement.textContent = `${geoData.city}, ${geoData.country_name}`;
+                        location = `${geoData.city}, ${geoData.country_name}`;
+                        locationElement.textContent = location;
                     } else {
                         locationElement.textContent = 'Onbekend';
                     }
                     
                     if (geoData.org) {
-                        ispElement.textContent = geoData.org.length > 30 ? geoData.org.substring(0, 30) + '...' : geoData.org;
+                        isp = geoData.org.length > 30 ? geoData.org.substring(0, 30) + '...' : geoData.org;
+                        ispElement.textContent = isp;
                     } else {
                         ispElement.textContent = 'Onbekend';
                     }
@@ -349,6 +524,22 @@
                     console.log('Kon locatie-informatie niet ophalen');
                     locationElement.textContent = 'Niet beschikbaar';
                     ispElement.textContent = 'Niet beschikbaar';
+                }
+                
+                // Log de IP-informatie
+                const logEntry = saveLogEntry({
+                    ipv4: ipv4,
+                    ipv6: ipv6,
+                    location: location,
+                    isp: isp
+                });
+                
+                // Update logweergave
+                displayLogHistory();
+                
+                // Toon melding
+                if (logEntry) {
+                    showNotification('IP-adres gelogd in geschiedenis');
                 }
                 
             } catch (error) {
@@ -396,23 +587,21 @@
             }, 3000);
         }
         
-        // Toon informatie over IP-adressen
-        function showIPInfo() {
-            const info = `IP-adressen (Internet Protocol) zijn unieke identificatoren voor apparaten op internet.\n\n- IPv4: 32-bit adres (bijv. 192.168.1.1), 4.3 miljard mogelijkheden\n- IPv6: 128-bit adres (bijv. 2001:0db8::1), vrijwel onbeperkt aantal\n\nJe IP-adres kan worden gebruikt om je algemene locatie en internetprovider te bepalen, maar identificeert je niet persoonlijk.`;
-            alert(info);
-        }
-        
         // Event listeners toevoegen
         refreshBtn.addEventListener('click', fetchIPInfo);
         copyBtn.addEventListener('click', copyToClipboard);
-        infoBtn.addEventListener('click', showIPInfo);
+        viewLogBtn.addEventListener('click', displayLogHistory);
+        downloadBtn.addEventListener('click', downloadLogFile);
         
-        // Laad IP-informatie bij het openen van de pagina
-        document.addEventListener('DOMContentLoaded', fetchIPInfo);
+        // Laad IP-informatie en loggeschiedenis bij het openen van de pagina
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchIPInfo();
+            displayLogHistory();
+        });
         
         // Toon een welkomstbericht na het laden
         window.addEventListener('load', () => {
-            console.log('IP-website volledig geladen');
+            console.log('IP-log website volledig geladen');
         });
     </script>
 </body>
