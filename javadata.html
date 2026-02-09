@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+
+    <fieldset>
+        <legend>Nog te werken dagen, uren en minuten.</legend>
+
+        <label for="datum">Kies een datum:</label><br />
+        <input type="date" id="datum"><br /><br />
+
+        <label for="tijd">Kies een tijdstip:</label><br />
+        <input type="time" id="tijd"><br /><br />
+
+        <button onclick="functie()">Bepaal hoeveel je deze week nog moet werken.</button>
+
+        <p id="output"></p>
+    </fieldset>
+
+    <script>
+        function functie() {
+            datumInvoer = document.getElementById('datum').value;
+            tijdInvoer = document.getElementById('tijd').value;
+            outputVeld = document.getElementById('output');
+
+             startMoment = new Date(datumInvoer +'T'+ tijdInvoer);
+             resultaatHtml = "<b><u>Nog te werken voor deze week:</u></b><br>";
+
+            
+            const DAG_START = 8 * 60;      
+            const PAUZE_START = 12 * 60;   
+            const PAUZE_EIND = 13 * 60;    
+            const DAG_EIND = 17 * 60;      
+            const TOTAAL_DAG_MINUTEN = 480; 
+
+             huidigeDag = new Date(startMoment);
+             dagNummer = huidigeDag.getDay();
+
+            
+            for ( i = dagNummer; i <= 5; i++) {
+                if (i === 0 || i === 6) continue;
+
+                 resterendeMinuten = 0;
+
+                
+                if (huidigeDag.toDateString() === startMoment.toDateString()) {
+                     nuInMinuten = startMoment.getHours() * 60 + startMoment.getMinutes();
+
+                    if (nuInMinuten < DAG_START) {
+                        resterendeMinuten = TOTAAL_DAG_MINUTEN;
+                    } else if (nuInMinuten >= DAG_EIND) {
+                        resterendeMinuten = 0;
+                    } else {
+                        
+                        if (nuInMinuten < PAUZE_START) {
+                            
+                            resterendeMinuten = (PAUZE_START - nuInMinuten) + (DAG_EIND - PAUZE_EIND);
+                        } else if (nuInMinuten < PAUZE_EIND) {
+                            
+                            resterendeMinuten = (DAG_EIND - PAUZE_EIND);
+                        } else {
+                           
+                            resterendeMinuten = (DAG_EIND - nuInMinuten);
+                        }
+                    }
+                } else {
+                    
+                    resterendeMinuten = TOTAAL_DAG_MINUTEN;
+                }
+
+                 uren = Math.floor(resterendeMinuten / 60);
+                 minuten = resterendeMinuten % 60;
+
+               
+                 
+                 datumTekst = huidigeDag.toDateString();
+
+                resultaatHtml += datumTekst + ": " + uren + "u " + minuten + "m<br>";
+
+                
+                huidigeDag.setDate(huidigeDag.getDate() + 1);
+            }
+
+            outputVeld.innerHTML = resultaatHtml;
+        }
+    </script>
+
+</body>
+</html>
